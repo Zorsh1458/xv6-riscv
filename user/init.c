@@ -9,12 +9,26 @@
 #include "user/user.h"
 #include "kernel/fcntl.h"
 
+
+#define SYSDEV_ID 2
+
+#define SYSDEV_NULL     0
+#define SYSDEV_ZERO     1
+#define SYSDEV_URANDOM  2
+#define SYSDEV_NULLSTAT 3
+
+
 char *argv[] = {"sh", 0};
 
 int
 main(void)
 {
   int pid, wpid;
+
+	mknod("/null",     SYSDEV_ID, SYSDEV_NULL);
+	mknod("/zero",     SYSDEV_ID, SYSDEV_ZERO);
+	mknod("/urandom",  SYSDEV_ID, SYSDEV_URANDOM);
+	mknod("/nullstat", SYSDEV_ID, SYSDEV_NULLSTAT);
 
   if (open("console", O_RDWR) < 0) {
     mknod("console", CONSOLE, 0);
