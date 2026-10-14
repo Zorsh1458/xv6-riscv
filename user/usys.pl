@@ -43,3 +43,6 @@ entry("sbrk");
 entry("pause");
 entry("uptime");
 entry("sync");
+entry("dump_pagetable");
+entry("clear_accessed_dirty");
+entry("check_accessed_dirty");
