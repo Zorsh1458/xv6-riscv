@@ -767,6 +767,7 @@ sys_ps_listinfo(void) {
     info.state = procinfo_state(p);
     memmove(info.name, p->name, 16);
     info.ppid = (p->parent == 0) ? 0 : p->parent->pid;
+    memmove(info.pname, (p->parent == 0) ? ("0") : (p->parent->name), 16);
     if (copyout(myproc()->pagetable, myproc()->sz, plist + (uint64)i * sizeof(struct procinfo), (char *)&info, sizeof(info)) < 0) {
       release(&p->lock);
       release(&wait_lock);

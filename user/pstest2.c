@@ -39,13 +39,14 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	printf("pid\tppid\tstate\t\tname\n");
+	printf("pid\tppid\tstate\t\tname\tpname\n");
 	for(int i = 0; i < got; i++){
-		printf("%d\t%d\t%s\t%s\n",
+		printf("%d\t%d\t%s\t%s\t%s\n",
 		       plist[i].pid,
 		       plist[i].ppid,
 		       state_name(plist[i].state),
-		       plist[i].name);
+		       plist[i].name,
+		       plist[i].pname);
 	}
 
 	free(plist);

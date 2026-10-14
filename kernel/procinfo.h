@@ -15,6 +15,7 @@ struct procinfo {
     char name[16];
     int state;
     int ppid;
+    char pname[16];
 };
 
 #endif
