@@ -25,6 +25,12 @@ char *sys_sbrk(int, int);
 int pause(int);
 int uptime(void);
 int sync(void);
+int dump_pagetable(void);
+int clear_accessed_dirty(void *buf, int len, int flags);
+int check_accessed_dirty(void *buf, int len, int flags);
+
+#define PT_CLEAR_A 0x1
+#define PT_CLEAR_D 0x2
 
 // ulib.c
 int stat(const char *, struct stat *);
