@@ -17,6 +17,7 @@
 #define SYSDEV_NULLSTAT 3
 
 static uint64 nullstat_bytes = 0;
+static struct spinlock nullstat_lock;
 
 static uint64 urandom_seed = 0x123456789abcdef0ULL;
 static struct spinlock urandom_lock;
@@ -24,6 +25,7 @@ static struct spinlock urandom_lock;
 void
 sysdev_init(void)
 {
+	initlock(&nullstat_lock, "sysdev_nullstat");
 	initlock(&urandom_lock, "sysdev_urandom");
 
     devsw[SYSDEV_ID].read = sysdev_read;
@@ -133,7 +135,9 @@ nullstat_read(int user_src, uint64 dst, int n)
 		return -1;
     }
 
+	acquire(&nullstat_lock);
 	uint64 val = nullstat_bytes;
+	release(&nullstat_lock);
 
 	if (user_src) {
 		if (copyout(myproc()->pagetable, myproc()->sz, dst, (char *)&val, sizeof(uint64)) < 0) {
@@ -152,7 +156,9 @@ nullstat_write(int user_src, uint64 src, int n)
 		return -1;
     }
 
+	acquire(&nullstat_lock);
 	nullstat_bytes += (uint64)n;
+	release(&nullstat_lock);
 	return n;
 }
 
