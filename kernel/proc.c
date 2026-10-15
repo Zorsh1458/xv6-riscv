@@ -733,7 +733,7 @@ sys_ps_listinfo(void) {
   
   for (struct proc *p = proc; p < &proc[NPROC]; p++) {
     acquire(&p->lock);
-    if (p->state != UNUSED) {
+    if (p->state != UNUSED && p->state != USED) {
       count++;
     }
     release(&p->lock);
@@ -753,7 +753,7 @@ sys_ps_listinfo(void) {
     
     acquire(&wait_lock);
     acquire(&p->lock);
-    if (p->state == UNUSED) {
+    if (p->state == UNUSED || p->state == USED) {
       release(&p->lock);
       release(&wait_lock);
       continue;
@@ -766,8 +766,15 @@ sys_ps_listinfo(void) {
     info.pid = p->pid;
     info.state = procinfo_state(p);
     memmove(info.name, p->name, 16);
-    info.ppid = (p->parent == 0) ? 0 : p->parent->pid;
-    memmove(info.pname, (p->parent == 0) ? ("0") : (p->parent->name), 16);
+    if (p->parent == 0) {
+      info.ppid = 0;
+      memmove(info.pname, "0", 16);
+    } else {
+      acquire(&p->parent->lock);
+      info.ppid = p->parent->pid;
+      memmove(info.pname, p->parent->name, 16);
+      release(&p->parent->lock);
+    }
     if (copyout(myproc()->pagetable, myproc()->sz, plist + (uint64)i * sizeof(struct procinfo), (char *)&info, sizeof(info)) < 0) {
       release(&p->lock);
       release(&wait_lock);
