@@ -315,6 +315,7 @@ virtio_disk_intr()
   // the device increments disk.used->idx when it
   // adds an entry to the used ring.
 
+	int completed = 0;
   while (disk.used_idx != disk.used->idx) {
     io_fence();
     int id = disk.used->ring[disk.used_idx % NUM].id;
@@ -327,7 +328,12 @@ virtio_disk_intr()
     wakeup(b);
 
     disk.used_idx += 1;
+    completed++;
   }
 
   release(&disk.vdisk_lock);
+	
+  if (get_diag_flag(1)) {
+    pr_msg("virtio: disk interrupt, %d op(s) completed", completed);
+  }
 }

@@ -150,6 +150,15 @@ uartintr(void)
     int c = uartgetc();
     if (c == -1)
       break;
+
+    if (get_diag_flag(1)) {
+		  if (c >= 0x20 && c < 0x7f) {
+		  	pr_msg("UART received '%c' (0x%x)", c, c);
+      } else {
+		  	pr_msg("UART received 0x%x", c);
+      }
+    }
+
     consoleintr(c);
   }
 }
