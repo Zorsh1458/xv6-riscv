@@ -184,3 +184,7 @@ void            virtio_disk_intr(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))
+
+void msg_init(void);
+void pr_msg(const char *fmt, ...);
+int  get_diag_flag(int class);

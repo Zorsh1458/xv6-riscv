@@ -295,7 +295,12 @@ kfork(void)
 
   acquire(&wait_lock);
   np->parent = p;
+  int ppid = p->pid;
   release(&wait_lock);
+
+  if (get_diag_flag(2)) {
+	  pr_msg("proc %d created proc %d", ppid, pid);
+  }
 
   acquire(&np->lock);
   np->state = RUNNABLE;
