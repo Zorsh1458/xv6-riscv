@@ -46,12 +46,22 @@ main(int argc, char *argv[])
 
 	for (int i = 1; i < argc; i++) {
 		size_t len = strlen(argv[i]);
-		if (write(pipefd[1], argv[i], len) != (ssize_t)len) {
-			perror("write");
-			close(pipefd[1]);
-			exit(EXIT_FAILURE);
+		size_t done = 0;
+		while (1) {
+			int n = write(pipefd[1], argv[i] + done, len);
+			if (n < 1) {
+				perror("write");
+				close(pipefd[1]);
+				exit(EXIT_FAILURE);
+			}
+			done += n;
+			len -= n;
+			if (len == 0) {
+				break;
+			}
 		}
-		if (write(pipefd[1], "\n", 1) != 1) {
+
+		if (write(pipefd[1], "\n", 1) < 1) {
 			perror("write");
 			close(pipefd[1]);
 			exit(EXIT_FAILURE);
