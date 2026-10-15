@@ -701,3 +701,90 @@ procdump(void)
     printk("\n");
   }
 }
+
+#include "procinfo.h"
+
+static int
+procinfo_state(struct proc *p) {
+  switch (p->state) {
+    case UNUSED:
+      return PROCINFO_UNUSED;
+    case USED:
+      return PROCINFO_USED;
+    case SLEEPING:
+      return PROCINFO_SLEEPING;
+    case RUNNABLE:
+      return PROCINFO_RUNNABLE;
+    case RUNNING:
+      return PROCINFO_RUNNING;
+    case ZOMBIE:
+      return PROCINFO_ZOMBIE;
+  }
+  return PROCINFO_UNUSED;
+}
+
+uint64
+sys_ps_listinfo(void) {
+  uint64 plist;
+  int lim, count = 0;
+
+  argaddr(0, &plist);
+  argint(1, &lim);
+  
+  for (struct proc *p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if (p->state != UNUSED && p->state != USED) {
+      count++;
+    }
+    release(&p->lock);
+  }
+
+  if (plist == 0) {
+    return count;
+  }
+
+  if (count > lim) {
+    return count;
+  }
+
+  int i = 0;
+  for (struct proc *p = proc; p < &proc[NPROC]; p++) {
+    struct procinfo info;
+    
+    acquire(&wait_lock);
+    acquire(&p->lock);
+    if (p->state == UNUSED || p->state == USED) {
+      release(&p->lock);
+      release(&wait_lock);
+      continue;
+    }
+
+    if (i == lim) {
+      return i+1;
+    }
+
+    info.pid = p->pid;
+    info.state = procinfo_state(p);
+    memmove(info.name, p->name, 16);
+    if (p->parent == 0) {
+      info.ppid = 0;
+      memmove(info.pname, "0", 16);
+    } else {
+      acquire(&p->parent->lock);
+      info.ppid = p->parent->pid;
+      memmove(info.pname, p->parent->name, 16);
+      release(&p->parent->lock);
+    }
+    if (copyout(myproc()->pagetable, myproc()->sz, plist + (uint64)i * sizeof(struct procinfo), (char *)&info, sizeof(info)) < 0) {
+      release(&p->lock);
+      release(&wait_lock);
+      return -2;
+    }
+
+    release(&p->lock);
+    release(&wait_lock);
+    i++;
+  }
+
+  return i;
+}
